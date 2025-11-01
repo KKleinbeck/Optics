@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://bopocss5acu33"]
+
+[ext_resource type="PackedScene" uid="uid://7hhrg831syxe" path="res://scenes/optics/beam.tscn" id="1_1wdrc"]
+[ext_resource type="Script" path="res://scenes/optics/primary_beam.gd" id="1_52fg5"]
+[ext_resource type="PackedScene" uid="uid://df2xvotsf7wqr" path="res://scenes/helpers/clickable.tscn" id="2_hays2"]
+
+[node name="PrimaryBeam" type="Node2D"]
+script = ExtResource("1_52fg5")
+
+[node name="Clickable" parent="." instance=ExtResource("2_hays2")]
+
+[node name="Beam" parent="." instance=ExtResource("1_1wdrc")]
+
+[connection signal="drag" from="Clickable" to="." method="_on_clickable_drag"]
+[connection signal="scroll" from="Clickable" to="." method="_on_clickable_scroll"]
+[connection signal="selectionChanged" from="Clickable" to="." method="_on_clickable_selection_changed"]

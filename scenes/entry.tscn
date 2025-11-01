@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://rhhniatmcbhk"]
+
+[ext_resource type="PackedScene" uid="uid://bopocss5acu33" path="res://scenes/optics/primary_beam.tscn" id="1_g4v4d"]
+[ext_resource type="PackedScene" uid="uid://6an0kvyvr3xl" path="res://scenes/optics/objects/mirror.tscn" id="2_0frrv"]
+[ext_resource type="PackedScene" uid="uid://dblnuuwvgbso4" path="res://scenes/optics/objects/mirror_flat.tscn" id="3_aacmm"]
+
+[node name="Entry" type="Node2D"]
+
+[node name="PrimaryBeam" parent="." instance=ExtResource("1_g4v4d")]
+position = Vector2(525, 335)
+
+[node name="Mirror" parent="." instance=ExtResource("2_0frrv")]
+position = Vector2(340, 111)
+
+[node name="Mirror2" parent="." instance=ExtResource("2_0frrv")]
+position = Vector2(680, 222)
+
+[node name="Mirror3" parent="." instance=ExtResource("2_0frrv")]
+position = Vector2(132, 374)
+
+[node name="Mirror4" parent="." instance=ExtResource("2_0frrv")]
+position = Vector2(367, 462)
+
+[node name="MirrorFlat" parent="." instance=ExtResource("3_aacmm")]
+position = Vector2(230, 307)
+rotation = -0.785398

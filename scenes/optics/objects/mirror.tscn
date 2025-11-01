@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://6an0kvyvr3xl"]
+
+[ext_resource type="Script" path="res://scenes/optics/objects/mirror.gd" id="1_vvffa"]
+
+[node name="Mirror" type="Area2D"]
+script = ExtResource("1_vvffa")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 100, 0, 100, 100, 0, 100)
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+offset_right = 100.0
+offset_bottom = 100.0
