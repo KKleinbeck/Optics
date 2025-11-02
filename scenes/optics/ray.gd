@@ -1,20 +1,23 @@
 class_name Ray extends Resource
 
-var angle: float = 0.
+var angleAtBeam: float = 0.
+var offsetAtBeam: Vector2 = Vector2.ZERO
 var maxBeamLength: float = 2000.
 
 
-func _init(_angle: float, _maxBeamLength: float) -> void:
-	angle = _angle
+func _init(_angleAtBeam: float, _offsetAtBeam: Vector2, _maxBeamLength: float) -> void:
+	angleAtBeam = _angleAtBeam
+	offsetAtBeam = _offsetAtBeam
 	maxBeamLength = _maxBeamLength
 
 
 func raycast(
-		space_state: PhysicsDirectSpaceState2D, viewport_position: Vector2,
-		orientation: float, backwardsPass: bool = false) -> Dictionary:
-	var rayDir = Vector2.UP.rotated(orientation + angle)
+		space_state: PhysicsDirectSpaceState2D, beamPositionAtVP: Vector2,
+		beamOrientation: float, backwardsPass: bool = false) -> Dictionary:
+	var rayDirAtVP = Vector2.UP.rotated(beamOrientation + angleAtBeam)
+	var rayPositionAtVP = beamPositionAtVP + offsetAtBeam.rotated(beamOrientation)
 	var query = PhysicsRayQueryParameters2D.create(
-		viewport_position, viewport_position + maxBeamLength * rayDir
+		rayPositionAtVP, rayPositionAtVP + maxBeamLength * rayDirAtVP
 	)
 	query.collide_with_areas = true
 	query.collision_mask &= ~GlobalDefinitions.clickableMask
@@ -23,9 +26,11 @@ func raycast(
 		result["corner"] = _determineRelevantCorner(
 			result.collider, result.position - result.collider.position, backwardsPass
 		)
-		result.localPosition = result.position - viewport_position
+		result.intersectionAtBeam = result.position - beamPositionAtVP
+		result.startAtBeam = offsetAtBeam
 	else:
-		result.localPosition = maxBeamLength * rayDir
+		result.intersectionAtBeam = maxBeamLength * rayDirAtVP + offsetAtBeam
+		result.startAtBeam = offsetAtBeam
 	return result
 
 
