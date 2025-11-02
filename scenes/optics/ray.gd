@@ -13,7 +13,7 @@ func _init(_angleAtBeam: float, _offsetAtBeam: Vector2, _maxBeamLength: float) -
 
 func raycast(
 		space_state: PhysicsDirectSpaceState2D, beamPositionAtVP: Vector2,
-		beamOrientation: float, backwardsPass: bool = false) -> Dictionary:
+		beamOrientation: float, backwardsPass: bool = false) -> Array:
 	var rayDirAtVP = Vector2.UP.rotated(beamOrientation + angleAtBeam)
 	var rayPositionAtVP = beamPositionAtVP + offsetAtBeam.rotated(beamOrientation)
 	var query = PhysicsRayQueryParameters2D.create(
@@ -22,16 +22,16 @@ func raycast(
 	query.collide_with_areas = true
 	query.collision_mask &= ~GlobalDefinitions.clickableMask
 	var result = space_state.intersect_ray(query)
+	
+	var beamData = {"startAtBeam" = offsetAtBeam}
 	if result:
 		result["corner"] = _determineRelevantCorner(
 			result.collider, result.position - result.collider.position, backwardsPass
 		)
-		result.intersectionAtBeam = result.position - beamPositionAtVP
-		result.startAtBeam = offsetAtBeam
+		beamData.intersectionAtBeam = result.position - beamPositionAtVP
 	else:
-		result.intersectionAtBeam = maxBeamLength * rayDirAtVP + offsetAtBeam
-		result.startAtBeam = offsetAtBeam
-	return result
+		beamData.intersectionAtBeam = maxBeamLength * rayDirAtVP + offsetAtBeam
+	return [beamData, result]
 
 
 func _determineRelevantCorner(

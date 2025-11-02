@@ -100,7 +100,6 @@ func _raycast() -> Array:
 		[{"p": beamRadius * Vector2.LEFT.rotated(orientation)}],
 		[{"p": beamRadius * Vector2.RIGHT.rotated(orientation)}]
 	]
-	_rayDump = []
 	
 	for n in [0, 1]: # Forward pass, backwards pass
 		var s = 1 if n == 0 else -1
@@ -111,39 +110,43 @@ func _raycast() -> Array:
 			if m == innerRays.size(): break
 			
 			var result = innerRays[-1].raycast(space_state, global_position + offset, orientation, bool(n))
-			_rayDump.append(result)
-			if "corner" in result and result.corner != Vector2.INF:
+			if result[1] and result[1].corner != Vector2.INF:
 				if m == 0:
-					shapes[n].append({"p": result.intersectionAtBeam, "raycastResult": result})
-				var pullback = _solveRayPullback(result, bool(n))
+					shapes[n].append({"p": result[0].intersectionAtBeam, "rayData": result[0], "raycastResult": result[1]})
+				var pullback = _solveRayPullback(result[1], bool(n))
 				if not pullback: break
 				
-				shapes[n].append({"p": pullback[2], "raycastResult": result})
+				shapes[n].append({"p": pullback[2], "rayData": result[0], "raycastResult": result[1]})
 				innerRays.append(
 					Ray.new(pullback[0] + s * 5e-3, pullback[1] * Vector2.RIGHT, rays[0].maxBeamLength)
 				)
-				#var targetVector = result.collider.position + result.corner - global_position - offset
-				#var targetAngle = Vector2.UP.angle_to(targetVector) + s * 1e-5 - orientation
-				##print(s * targetAngle, "  ", s * innerRays[-1].angle, "  ", s * thresholdAngle, "  ", s * targetAngle < s * innerRays[-1].angle + 1e-4)
-				#if s * targetAngle < s * innerRays[-1].angleAtRay + 5e-3:
-					#targetAngle = innerRays[-1].angleAtRay + s * 5e-3
-					#innerRays.append(Ray.new(targetAngle, Vector2.ZERO, rays[0].maxBeamLength))
-				#elif s * targetAngle < s * thresholdAngle:
-					#shapes[n].append({"p": targetVector, "raycastResult": result})
-					#innerRays.append(Ray.new(targetAngle, Vector2.ZERO, rays[0].maxBeamLength))
 			else:
-				shapes[n].append({"p": result.intersectionAtBeam})
+				shapes[n].append({"p": result[0].intersectionAtBeam, "rayData": result[0]})
 	
 	shapes[1].reverse()
 	var preShape = shapes[0] + shapes[1]
 	shape = PackedVector2Array([preShape[0].p])
+	_rayDump = []
 	var newBeamStarts = []
 	for n in preShape.size() - 1:
-		if (preShape[n+1].p - preShape[n].p).length() / (preShape[n+1].p + preShape[n].p).length() > 0.01:
-			shape.append(preShape[n+1].p)
-			if "raycastResult" in preShape[n] and "raycastResult" in preShape[n+1] and \
-				preShape[n+1].raycastResult.collider == preShape[n].raycastResult.collider:
-				newBeamStarts.append([preShape[n], preShape[n+1]])
+		if (preShape[n+1].p - preShape[n].p).length() / (preShape[n+1].p + preShape[n].p).length() <= 5e-3:
+			print("Clustered")
+			continue # Clustered Beams
+		
+		if shape.size() >= 2:
+			var preVec = (shape[-1] - shape[-2]).normalized()
+			var postVec = (preShape[n+1].p - shape[-1]).normalized()
+			#print("TEST: ", abs(preVec.dot(postVec)), preVec, postVec)
+			if  abs(preVec.dot(postVec)) > 1. - 5e-6:
+				print("Back and forth")
+				shape[-1] = preShape[n+1].p
+				#if "rayData" in preShape[n+1]: _rayDump[-1] = preShape[n+1].rayData
+		
+		shape.append(preShape[n+1].p)
+		if "rayData" in preShape[n+1]: _rayDump.append(preShape[n+1].rayData)
+		if "raycastResult" in preShape[n] and "raycastResult" in preShape[n+1] and \
+			preShape[n+1].raycastResult.collider == preShape[n].raycastResult.collider:
+			newBeamStarts.append([preShape[n], preShape[n+1]])
 	return newBeamStarts
 
 
